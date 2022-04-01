@@ -56,8 +56,7 @@ async def create_source_entity(entity_id: str, hass: HomeAssistantType) -> Sourc
     else:
         source_entity_name = source_object_id.replace("_", " ")
 
-    entity_state = hass.states.get(entity_id)
-    if entity_state:
+    if entity_state := hass.states.get(entity_id):
         source_entity_name = entity_state.name
         supported_color_modes = entity_state.attributes.get(ATTR_SUPPORTED_COLOR_MODES)
 

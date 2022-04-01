@@ -102,16 +102,20 @@ class LinearStrategy(PowerCalculationStrategyInterface):
             min = full_range[0]
             max = full_range[1]
             min_power = self._config.get(CONF_MIN_POWER) or self._standby_power or 0
-            list.append((min, float(min_power)))
-            list.append((max, float(self._config.get(CONF_MAX_POWER))))
+            list.extend(
+                (
+                    (min, float(min_power)),
+                    (max, float(self._config.get(CONF_MAX_POWER))),
+                )
+            )
+
             return list
 
         for line in calibrate:
             parts = line.split(" -> ")
             list.append((int(parts[0]), float(parts[1])))
 
-        sorted_list = sorted(list, key=lambda tup: tup[0])
-        return sorted_list
+        return sorted(list, key=lambda tup: tup[0])
 
     def get_entity_value_range(self) -> tuple:
         """Get the min/max range for a given entity domain"""
@@ -128,8 +132,7 @@ class LinearStrategy(PowerCalculationStrategyInterface):
         if entity_state.domain == light.DOMAIN:
             value = attrs.get(ATTR_BRIGHTNESS)
             # Some integrations set a higher brightness value than 255, causing powercalc to misbehave
-            if value > 255:
-                value = 255
+            value = min(value, 255)
             if value is None:
                 _LOGGER.error(f"No brightness for entity: {entity_state.entity_id}")
                 return None
@@ -154,16 +157,18 @@ class LinearStrategy(PowerCalculationStrategyInterface):
         """Validate correct setup of the strategy"""
 
         if (
-            not CONF_CALIBRATE in self._config
+            CONF_CALIBRATE not in self._config
             and source_entity.domain not in ALLOWED_DOMAINS
         ):
             raise StrategyConfigurationError(
-                "Entity domain not supported for linear mode. Must be one of: {}".format(
-                    ",".join(ALLOWED_DOMAINS)
-                )
+                f'Entity domain not supported for linear mode. Must be one of: {",".join(ALLOWED_DOMAINS)}'
             )
 
-        if not CONF_CALIBRATE in self._config and not CONF_MAX_POWER in self._config:
+
+        if (
+            CONF_CALIBRATE not in self._config
+            and CONF_MAX_POWER not in self._config
+        ):
             raise StrategyConfigurationError(
                 "Linear strategy must have at least 'max power' or 'calibrate' defined"
             )

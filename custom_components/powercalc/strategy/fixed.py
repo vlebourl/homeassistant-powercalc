@@ -43,18 +43,16 @@ class FixedStrategy(PowerCalculationStrategyInterface):
 
     async def calculate(self, entity_state: State) -> Optional[Decimal]:
         if self._per_state_power is not None:
-            # Lookup by state
             if entity_state.state in self._per_state_power:
                 return await evaluate_power(
                     self._per_state_power.get(entity_state.state)
                 )
-            else:
-                # Lookup by state attribute (attribute|value)
-                for state_key, power in self._per_state_power.items():
-                    if "|" in state_key:
-                        attribute, value = state_key.split("|", 2)
-                        if str(entity_state.attributes.get(attribute)) == value:
-                            return await evaluate_power(power)
+            # Lookup by state attribute (attribute|value)
+            for state_key, power in self._per_state_power.items():
+                if "|" in state_key:
+                    attribute, value = state_key.split("|", 2)
+                    if str(entity_state.attributes.get(attribute)) == value:
+                        return await evaluate_power(power)
 
         if self._power is None:
             return None
@@ -77,10 +75,12 @@ class FixedStrategy(PowerCalculationStrategyInterface):
 
         if isinstance(self._power, Template):
             track_templates.append(TrackTemplate(self._power, None))
-        
+
         if self._per_state_power:
-            for power in list(self._per_state_power.values()):
-                if isinstance(power, Template):
-                    track_templates.append(TrackTemplate(power, None))
+            track_templates.extend(
+                TrackTemplate(power, None)
+                for power in list(self._per_state_power.values())
+                if isinstance(power, Template)
+            )
 
         return track_templates

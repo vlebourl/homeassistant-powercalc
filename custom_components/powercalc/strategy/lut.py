@@ -113,9 +113,7 @@ class LutStrategy(PowerCalculationStrategyInterface):
                 entity_state.entity_id,
             )
             return None
-        if brightness > 255:
-            brightness = 255
-
+        brightness = min(brightness, 255)
         if color_mode is COLOR_MODE_UNKNOWN:
             _LOGGER.debug(
                 "%s: Could not calculate power. color mode unknown",
@@ -170,10 +168,7 @@ class LutStrategy(PowerCalculationStrategyInterface):
 
     def lookup_power(self, lookup_table: dict, light_setting: LightSetting) -> float:
         brightness = light_setting.brightness
-        brightness_table = lookup_table.get(brightness)
-
-        # Check if we have an exact match for the selected brightness level in de LUT
-        if brightness_table:
+        if brightness_table := lookup_table.get(brightness):
             return self.lookup_power_for_brightness(brightness_table, light_setting)
 
         # We don't have an exact match, use interpolation
@@ -198,9 +193,8 @@ class LutStrategy(PowerCalculationStrategyInterface):
             return lut_value
         if light_setting.color_mode == COLOR_MODE_COLOR_TEMP:
             return self.get_nearest(lut_value, light_setting.color_temp)
-        else:
-            sat_values = self.get_nearest(lut_value, light_setting.hue)
-            return self.get_nearest(sat_values, light_setting.saturation)
+        sat_values = self.get_nearest(lut_value, light_setting.hue)
+        return self.get_nearest(sat_values, light_setting.saturation)
 
     def get_nearest(self, dict: dict, search_key: int):
         return (
@@ -214,9 +208,7 @@ class LutStrategy(PowerCalculationStrategyInterface):
         if last_key < search_key:
             return last_key
 
-        return max(
-            (k for k in dict.keys() if int(k) <= int(search_key)), default=[*keys][0]
-        )
+        return max((k for k in dict if int(k) <= search_key), default=[*keys][0])
 
     def get_nearest_higher_brightness(self, dict: dict, search_key: int) -> int:
         keys = dict.keys()
@@ -224,7 +216,7 @@ class LutStrategy(PowerCalculationStrategyInterface):
         if first_key > search_key:
             return first_key
 
-        return min((k for k in keys if int(k) >= int(search_key)), default=[*keys][-1])
+        return min((k for k in keys if int(k) >= search_key), default=[*keys][-1])
 
     async def validate_config(self, source_entity: SourceEntity):
         if source_entity.domain != light.DOMAIN:

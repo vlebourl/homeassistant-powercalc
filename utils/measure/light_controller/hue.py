@@ -49,12 +49,12 @@ class HueLightController(LightController):
             model_id = light["modelid"]
             model_ids.add(model_id)
 
-        if len(model_ids) == 0:
+        if not model_ids:
             raise ModelNotDiscoveredError("Could not find a model id for the group")
-        
+
         if len(model_ids) > 1:
             raise LightControllerError("The Hue group contains lights of multiple models, this is not supported")
-        
+
         return model_ids.pop()
 
 
@@ -72,17 +72,17 @@ class HueLightController(LightController):
     def get_questions(self) -> list[dict]:
 
         def get_light_list(answers):
-            light_list = []
-            for light in self.bridge.lights:
-                light_list.append(
-                    {"value": f"{TYPE_LIGHT}:{light.light_id}", "name": light.name}
-                )
+            light_list = [
+                {"value": f"{TYPE_LIGHT}:{light.light_id}", "name": light.name}
+                for light in self.bridge.lights
+            ]
+
             if answers["multiple_lights"]:
                 light_list.append(Separator())
-                for group in self.bridge.groups:
-                    light_list.append(
-                        {"value": f"{TYPE_GROUP}:{group.group_id}", "name": group.name}
-                    )
+                light_list.extend(
+                    {"value": f"{TYPE_GROUP}:{group.group_id}", "name": group.name}
+                    for group in self.bridge.groups
+                )
 
             return light_list
 

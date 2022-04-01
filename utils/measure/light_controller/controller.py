@@ -15,16 +15,14 @@ class LightInfo:
         return self._min_mired
 
     def set_min_mired(self, value: int):
-        if value < MIN_MIRED:
-            value = MIN_MIRED
+        value = max(value, MIN_MIRED)
         self._min_mired = value
 
     def get_max_mired(self) -> int:
         return self._max_mired
 
     def set_max_mired(self, value: int):
-        if value > MAX_MIRED:
-            value = MAX_MIRED
+        value = min(value, MAX_MIRED)
         self._max_mired = value
 
     min_mired = property(get_min_mired, set_min_mired)

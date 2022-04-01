@@ -61,8 +61,9 @@ async def create_energy_sensor(
     if CONF_POWER_SENSOR_ID in sensor_config and isinstance(
         power_sensor, RealPowerSensor
     ):
-        real_energy_sensor = find_related_real_energy_sensor(hass, power_sensor)
-        if real_energy_sensor:
+        if real_energy_sensor := find_related_real_energy_sensor(
+            hass, power_sensor
+        ):
             _LOGGER.debug(
                 f"Found existing energy sensor '{real_energy_sensor.entity_id}' for the power sensor '{power_sensor.entity_id}'"
             )

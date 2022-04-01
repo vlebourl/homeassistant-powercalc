@@ -151,7 +151,7 @@ class Measure:
             except PowerMeterError as error:
                 _LOGGER.error(f"Aborting: {error}")
                 return
-            
+
             self.write_model_json(
                 directory=export_directory,
                 standby_power=standby_power,
@@ -211,8 +211,7 @@ class Measure:
 
             csv_file.close()
 
-        if answers["gzip"] or True:
-            self.gzip_csv(csv_file_path)
+        self.gzip_csv(csv_file_path)
 
     def should_resume(self, csv_file_path: str) -> bool:
         if not os.path.exists(csv_file_path):
@@ -355,9 +354,8 @@ class Measure:
             indent=4,
             sort_keys=True,
         )
-        json_file = open(os.path.join(directory, "model.json"), "w")
-        json_file.write(json_data)
-        json_file.close()
+        with open(os.path.join(directory, "model.json"), "w") as json_file:
+            json_file.write(json_data)
 
     def get_questions(self) -> list[dict]:
         return (

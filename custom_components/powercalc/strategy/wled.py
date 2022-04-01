@@ -63,19 +63,17 @@ class WledStrategy(PowerCalculationStrategyInterface):
     async def find_estimated_current_entity(self) -> str:
         entity_reg = entity_registry.async_get(self._hass)
         entity_id = f"sensor.{self._light_entity.object_id}_estimated_current"
-        entry = entity_reg.async_get(entity_id)
-        if entry:
+        if entry := entity_reg.async_get(entity_id):
             return entry.entity_id
 
         device_id = self._light_entity.entity_entry.device_id
-        estimated_current_entities = [
+        if estimated_current_entities := [
             entity_entry.entity_id
             for entity_entry in entity_registry.async_entries_for_device(
                 entity_reg, device_id
             )
             if "estimated_current" in entity_entry.entity_id
-        ]
-        if estimated_current_entities:
+        ]:
             return estimated_current_entities[0]
 
         raise StrategyConfigurationError("{No estimated current entity found")

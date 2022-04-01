@@ -11,9 +11,7 @@ class TasmotaPowerMeter(PowerMeter):
         self._device_ip = device_ip
 
     def get_power(self) -> PowerMeasurementResult:
-        contents = str(
-            urllib.request.urlopen("http://" + self._device_ip + "/?m").read()
-        )
+        contents = str(urllib.request.urlopen(f"http://{self._device_ip}/?m").read())
         contents = contents.split(" W{e}")[0]
         contents = contents.split("{m}")[-1]
         return PowerMeasurementResult(float(contents), time.time())

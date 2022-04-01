@@ -210,9 +210,9 @@ async def create_domain_groups(
     """Create group sensors aggregating all power sensors from given domains"""
     component = EntityComponent(_LOGGER, SENSOR_DOMAIN, hass)
     sensor_config = global_config.copy()
-    _LOGGER.debug(f"Setting up domain based group sensors..")
+    _LOGGER.debug("Setting up domain based group sensors..")
     for domain in domains:
-        if not domain in hass.data[DOMAIN].get(DATA_DOMAIN_ENTITIES):
+        if domain not in hass.data[DOMAIN].get(DATA_DOMAIN_ENTITIES):
             _LOGGER.error(f"Cannot setup group for domain {domain}, no entities found")
             continue
 

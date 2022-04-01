@@ -197,8 +197,7 @@ async def create_real_power_sensor(
     unique_id = sensor_config.get(CONF_UNIQUE_ID)
     device_id = None
     ent_reg = er.async_get(hass)
-    entity_entry = ent_reg.async_get(power_sensor_id)
-    if entity_entry:
+    if entity_entry := ent_reg.async_get(power_sensor_id):
         if not unique_id:
             unique_id = entity_entry.unique_id
         device_id = entity_entry.device_id
@@ -210,8 +209,7 @@ async def create_real_power_sensor(
 
 def select_calculation_mode(config: dict) -> Optional[str]:
     """Select the calculation mode"""
-    config_mode = config.get(CONF_MODE)
-    if config_mode:
+    if config_mode := config.get(CONF_MODE):
         return config_mode
 
     if config.get(CONF_LINEAR):
@@ -301,12 +299,11 @@ class VirtualPowerSensor(SensorEntity, PowerSensor):
                 self.hass, track_entities, appliance_state_listener
             )
 
-            track_templates = [
+            if track_templates := [
                 template
                 for template in entities_to_track
                 if isinstance(template, TrackTemplate)
-            ]
-            if track_templates:
+            ]:
                 async_track_template_result(
                     self.hass,
                     track_templates=track_templates,

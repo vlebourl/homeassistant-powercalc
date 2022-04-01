@@ -198,14 +198,11 @@ def build_nested_configuration_schema(schema: dict, iteration: int = 0) -> dict:
     if iteration == MAX_GROUP_NESTING_LEVEL:
         return schema
     iteration += 1
-    schema.update(
-        {
-            vol.Optional(CONF_ENTITIES): vol.All(
-                cv.ensure_list,
-                [build_nested_configuration_schema(schema.copy(), iteration)],
-            )
-        }
+    schema[vol.Optional(CONF_ENTITIES)] = vol.All(
+        cv.ensure_list,
+        [build_nested_configuration_schema(schema.copy(), iteration)],
     )
+
     return schema
 
 
@@ -263,7 +260,7 @@ def get_merged_sensor_configuration(*configs: dict, validate: bool = True) -> di
 
         merged_config.update(config_copy)
 
-    if not CONF_CREATE_ENERGY_SENSOR in merged_config:
+    if CONF_CREATE_ENERGY_SENSOR not in merged_config:
         merged_config[CONF_CREATE_ENERGY_SENSOR] = merged_config.get(
             CONF_CREATE_ENERGY_SENSORS
         )
@@ -271,7 +268,7 @@ def get_merged_sensor_configuration(*configs: dict, validate: bool = True) -> di
     if CONF_DAILY_FIXED_ENERGY in merged_config:
         merged_config[CONF_ENTITY_ID] = DUMMY_ENTITY_ID
 
-    if validate and not CONF_ENTITY_ID in merged_config:
+    if validate and CONF_ENTITY_ID not in merged_config:
         raise SensorConfigurationError(
             "You must supply an entity_id in the configuration, see the README"
         )
@@ -317,7 +314,7 @@ async def create_sensors(
                 continue
 
             entity_id = entity_config.get(CONF_ENTITY_ID) or str(uuid.uuid4())
-            sensor_configs.update({entity_id: entity_config})
+            sensor_configs[entity_id] = entity_config
 
     # Automatically add a bunch of entities by area or evaluating template
     if CONF_INCLUDE in config:
@@ -349,8 +346,9 @@ async def create_sensors(
             )
         elif not sensor_configs:
             raise SensorConfigurationError(
-                f"Could not resolve any entities for non-group sensor"
+                "Could not resolve any entities for non-group sensor"
             )
+
 
     # Create group sensors (power, energy, utility)
     if CONF_CREATE_GROUP in config:
@@ -444,7 +442,7 @@ async def create_individual_sensors(
             ),
         )
 
-    if not source_entity.domain in hass.data[DOMAIN][DATA_DOMAIN_ENTITIES]:
+    if source_entity.domain not in hass.data[DOMAIN][DATA_DOMAIN_ENTITIES]:
         hass.data[DOMAIN][DATA_DOMAIN_ENTITIES][source_entity.domain] = []
 
     hass.data[DOMAIN][DATA_DOMAIN_ENTITIES][source_entity.domain].extend(
@@ -556,7 +554,7 @@ def resolve_area_entities(
     area_reg = area_registry.async_get(hass)
     area = area_reg.async_get_area(area_id_or_name)
     if area is None:
-        area = area_reg.async_get_area_by_name(str(area_id_or_name))
+        area = area_reg.async_get_area_by_name(area_id_or_name)
 
     if area is None:
         raise SensorConfigurationError(
